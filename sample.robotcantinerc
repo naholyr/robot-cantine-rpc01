@@ -1,0 +1,16 @@
+{
+  // Save as .robotcantinerc
+  "includeDayMenu": false,
+  "filename": "[/tmp/menu-cantine-semaine-]w[.pdf]",
+  "thumbname": "[/tmp/menu-cantine-jour-]DD/MM[.png]",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.16 Safari/537.36",
+  "mail": {
+    "transport": "smtps://user%40gmail.com:password@smtp.gmail.com",
+    "from": "user@gmail.com",
+    "to": [
+      // mailing list
+    ],
+    "subject": "[Menu cantine semaine du ]DD/MM",
+    "text": "PDF ci-joint. Lien direct: {URL}"
+  }
+}

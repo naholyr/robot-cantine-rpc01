@@ -1,0 +1,25 @@
+{
+  "name": "robot-cantine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gm": "^1.23.0",
+    "moment": "^2.15.0",
+    "nodemailer": "^2.6.0",
+    "rc": "^1.1.6",
+    "request": "^2.74.0",
+    "user-home": "^2.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.5.0",
+    "eslint-config-standard": "^6.0.0",
+    "eslint-plugin-promise": "^2.0.1",
+    "eslint-plugin-standard": "^2.0.0"
+  }
+}
