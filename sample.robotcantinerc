@@ -1,5 +1,6 @@
 {
   // Save as .robotcantinerc
+  "rpcCode": 112, // Menu standard
   "includeDayMenu": false,
   "filename": "[/tmp/menu-cantine-semaine-]w[.pdf]",
   "thumbname": "[/tmp/menu-cantine-jour-]DD/MM[.png]",

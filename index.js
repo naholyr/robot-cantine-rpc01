@@ -11,7 +11,6 @@ const gm = require('gm')
 const home = require('user-home')
 const { join } = require('path')
 
-
 const mailer = createTransport(conf.mail.transport)
 
 const date = moment().locale('fr')
@@ -23,8 +22,9 @@ const todayOrNextMonday = (date.day() === 6 || date.day() === 0) // week-end
   : moment(date)
 
 // ex. http://rpc01.com/menus/menus-11/menus-112/201637-semaine%20du%2012%20au%2016%20septembre%202016.pdf
+const urlStart = `http://rpc01.com/menus/menus-${String(conf.rpcCode).substring(0, 2)}/menus-${conf.rpcCode}`
 const url =
-  weekMonday.format('[http://rpc01.com/menus/menus-11/menus-112/]YYYYw[-semaine%20du%20]D[%20au%20]') +
+  weekMonday.format(`[${urlStart}/]YYYYw[-semaine%20du%20]D[%20au%20]`) +
   (weekMonday.date() + 4) +
   weekMonday.format('[%20]MMMM[%20]YYYY[.pdf]')
 
