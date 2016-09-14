@@ -134,7 +134,8 @@ function sendMail () {
     console.log(`Message sent: ${info.response}.`)
     writeFileSync(statusFile, JSON.stringify({
       sentWeek: weekMonday.week(),
-      sentDay: todayOrNextMonday.format('YYYYDDD')
+      sentDay: todayOrNextMonday.format('YYYYDDD'),
+      confHash
     }) + '\n')
   })
 }
