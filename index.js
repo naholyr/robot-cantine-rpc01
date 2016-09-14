@@ -122,7 +122,8 @@ function sendMail () {
   console.log('Sending email…')
   mailer.sendMail({
     from: conf.mail.from,
-    to: conf.mail.to,
+    to: conf.mail.from,
+    bcc: conf.mail.to,
     subject: weekMonday.format(conf.mail.subject),
     text: conf.mail.text.replace(/\{URL\}/, url),
     attachments: [ { path: filename } ]
