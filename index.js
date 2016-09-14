@@ -10,6 +10,7 @@ const { createTransport } = require('nodemailer')
 const gm = require('gm')
 const home = require('user-home')
 const { join } = require('path')
+const sha1 = require('sha1')
 
 const mailer = createTransport(conf.mail.transport)
 
@@ -37,15 +38,26 @@ const status = (() => {
   }
 })()
 
-if (!conf.includeDayMenu && status.sentWeek >= weekMonday.week()) {
-  console.log('Menu already sent this week.')
-  console.log('Day menu extraction disabled.')
-  process.exit(0)
-}
+const confHash = sha1(JSON.stringify(conf))
+const alreadySent = (() => {
+  if (!conf.includeDayMenu && status.sentWeek >= weekMonday.week()) {
+    console.log('Menu already sent this week.')
+    console.log('Day menu extraction disabled.')
+    return true
+  } else if (status.sentDay >= todayOrNextMonday.format('YYYYDDD')) {
+    console.log('Menu already sent today.')
+    return true
+  } else {
+    return false
+  }
+})()
 
-if (status.sentDay >= todayOrNextMonday.format('YYYYDDD')) {
-  console.log('Menu already sent today.')
-  process.exit(0)
+if (alreadySent) {
+  if (status.confHash && confHash !== status.confHash) {
+    console.log('Configuration has changed! sending anyway…')
+  } else {
+    process.exit(0)
+  }
 }
 
 const filename = weekMonday.format(conf.filename)
