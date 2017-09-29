@@ -39,12 +39,14 @@ const status = (() => {
 })()
 
 const confHash = sha1(JSON.stringify(conf))
+const refDay = todayOrNextMonday.format('YYYYDDD')
+const refWeek = weekMonday.year() * 52 + weekMonday.week()
 const alreadySent = (() => {
-  if (!conf.includeDayMenu && status.sentWeek >= weekMonday.week()) {
+  if (!conf.includeDayMenu && status.sentWeek >= refWeek) {
     console.log('Menu already sent this week.')
     console.log('Day menu extraction disabled.')
     return true
-  } else if (status.sentDay >= todayOrNextMonday.format('YYYYDDD')) {
+  } else if (status.sentDay >= refDay) {
     console.log('Menu already sent today.')
     return true
   } else {
@@ -134,8 +136,8 @@ function sendMail () {
     }
     console.log(`Message sent: ${info.response}.`)
     writeFileSync(statusFile, JSON.stringify({
-      sentWeek: weekMonday.week(),
-      sentDay: todayOrNextMonday.format('YYYYDDD'),
+      sentWeek: refWeek,
+      sentDay: refDay,
       confHash
     }) + '\n')
   })
