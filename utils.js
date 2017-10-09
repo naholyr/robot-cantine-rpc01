@@ -5,7 +5,7 @@ const { createTransport } = require('nodemailer')
 const home = require('user-home')
 const { join } = require('path')
 const { statSync, readFileSync, writeFileSync } = require('fs')
-const get = require('sync-request')
+const request = require('sync-request')
 const Holidays = require('date-holidays')
 
 moment.locale('fr')
@@ -58,7 +58,7 @@ exports.files = (conf, {weekMonday, todayOrNextMonday}) => {
 
 const download = exports.download = ({ userAgent }, url, filename) => {
   const headers = { 'User-Agent': userAgent }
-  const res = get({ url, headers })
+  const res = request('GET', url, { headers })
   writeFileSync(filename, res.body)
 }
 
