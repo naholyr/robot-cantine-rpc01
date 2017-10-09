@@ -7,10 +7,12 @@ const { join } = require('path')
 const { createWriteStream, statSync, readFileSync, writeFileSync } = require('fs')
 const get = require('request')
 
+moment.locale('fr')
+
 exports.mailer = ({ mail }) => createTransport(mail.transport)
 
 exports.dates = () => {
-  const date = moment().locale('fr')
+  const date = moment()
   const weekMonday = date.day() === 6 // saturday
     ? moment(date).day(8) // next monday
     : moment(date).day(1) // last monday
@@ -63,9 +65,19 @@ exports.download = ({ userAgent }, url, filename, next) => {
 // ex. http://rpc01.com/menus/menus-11/menus-112/201637-semaine%20du%2012%20au%2016%20septembre%202016.pdf
 exports.url = ({rpcCode}, {weekMonday}) => {
   const urlStart = `http://rpc01.com/menus/menus-${String(rpcCode).substring(0, 2)}/menus-${rpcCode}`
-  return (
-    weekMonday.format(`[${urlStart}/]YYYYw[-semaine%20du%20]D[%20au%20]`) +
-    (weekMonday.date() + 4) +
-    weekMonday.format('[%20]MMMM[%20]YYYY[.pdf]')
-  )
+  const friday = moment(weekMonday).add(4, 'day')
+  let parts = [
+    weekMonday.format(`[${urlStart}/]YYYYw[-semaine%20du%20]D`),
+    '', // monday's month
+    '', // monday's year
+    'au',
+    friday.format('D[%20]MMMM[%20]YYYY[.pdf]')
+  ]
+  if (weekMonday.year() !== friday.year()) {
+    parts[1] = weekMonday.format('MMMM')
+    parts[2] = weekMonday.format('YYYY')
+  } else if (weekMonday.month() !== friday.month()) {
+    parts[1] = weekMonday.format('MMMM')
+  }
+  return parts.filter(s => s !== '').join('%20')
 }
