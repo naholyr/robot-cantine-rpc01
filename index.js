@@ -2,58 +2,31 @@
 
 'use strict'
 
-const moment = require('moment')
-const get = require('request')
-const { createWriteStream, statSync, readFileSync, writeFileSync } = require('fs')
+const { status, dates, files, mailer, download, url } = require('./utils')
 const conf = require('rc')('robotcantine', {})
-const { createTransport } = require('nodemailer')
 const gm = require('gm')
-const home = require('user-home')
-const { join } = require('path')
 const sha1 = require('sha1')
 
-const mailer = createTransport(conf.mail.transport)
+const { weekMonday, todayOrNextMonday } = dates()
+const { sentDay } = status()
 
-const date = moment().locale('fr')
-const weekMonday = date.day() === 6 // saturday
-  ? moment(date).day(8)
-  : moment(date).day(1)
-const todayOrNextMonday = (date.day() === 6 || date.day() === 0) // week-end
-  ? moment(weekMonday)
-  : moment(date)
-
-// ex. http://rpc01.com/menus/menus-11/menus-112/201637-semaine%20du%2012%20au%2016%20septembre%202016.pdf
-const urlStart = `http://rpc01.com/menus/menus-${String(conf.rpcCode).substring(0, 2)}/menus-${conf.rpcCode}`
-const url =
-  weekMonday.format(`[${urlStart}/]YYYYw[-semaine%20du%20]D[%20au%20]`) +
-  (weekMonday.date() + 4) +
-  weekMonday.format('[%20]MMMM[%20]YYYY[.pdf]')
-
-const statusFile = join(home, '.robotcantine.status.json')
-const status = (() => {
-  try {
-    return JSON.parse(readFileSync(statusFile))
-  } catch (e) {
-    return {}
-  }
-})()
-
+// Configuration hash: to detect if configuration changed between two executions
 const confHash = sha1(JSON.stringify(conf))
+
+// Reference day/week if we must check daily or weekly
 const refDay = todayOrNextMonday.format('YYYYDDD')
 const refWeek = weekMonday.year() * 52 + weekMonday.week()
-const alreadySent = (() => {
-  if (!conf.includeDayMenu && status.sentWeek >= refWeek) {
-    console.log('Menu already sent this week.')
-    console.log('Day menu extraction disabled.')
-    return true
-  } else if (status.sentDay >= refDay) {
-    console.log('Menu already sent today.')
-    return true
-  } else {
-    return false
-  }
-})()
 
+// Already sent this week or day?
+let alreadySent = false
+if (!conf.includeDayMenu && status.sentWeek >= refWeek) {
+  console.log('Menu already sent this week.')
+  console.log('Day menu extraction disabled.')
+  alreadySent = true
+} else if (sentDay >= refDay) {
+  console.log('Menu already sent today.')
+  alreadySent = true
+}
 if (alreadySent) {
   if (status.confHash && confHash !== status.confHash) {
     console.log('Configuration has changed! sending anyway…')
@@ -62,37 +35,26 @@ if (alreadySent) {
   }
 }
 
-const filename = weekMonday.format(conf.filename)
-const thumbname = todayOrNextMonday.format(conf.thumbname)
-const exists = (() => {
-  try {
-    return statSync(filename).size > 10000
-  } catch (e) {
-    return false
-  }
-})()
+// We can proceed: generate local cached file names
+const { filename, thumbname, exists } = files(conf, {weekMonday, todayOrNextMonday})
+const URL = url(conf, {weekMonday})
 
 if (exists) {
   console.log(`Menu already saved at ${filename}.`)
-  extractTodayMenu()
+  extractTodayMenu(sendMail)
 } else {
-  downloadAndSave()
+  downloadAndSave(URL)
 }
 
-function downloadAndSave () {
+const downloadAndSave = url => {
   console.log(`Fetching ${url}…`)
-  get({
-    url,
-    headers: {
-      'User-Agent': conf.userAgent
-    }
-  }).pipe(createWriteStream(filename)).on('close', () => {
+  download(conf, url, filename, () => {
     console.log(`Written ${filename}.`)
     extractTodayMenu()
   })
 }
 
-function extractTodayMenu () {
+const extractTodayMenu = () => {
   if (!conf.includeDayMenu) {
     console.log('Day menu extraction disabled.')
     sendMail()
@@ -120,14 +82,14 @@ function extractTodayMenu () {
   })
 }
 
-function sendMail () {
+const sendMail = () => {
   console.log('Sending email…')
-  mailer.sendMail({
+  mailer(conf).sendMail({
     from: conf.mail.from,
     to: conf.mail.from,
     bcc: conf.mail.to,
     subject: weekMonday.format(conf.mail.subject),
-    text: conf.mail.text.replace(/\{URL\}/, url),
+    text: conf.mail.text.replace(/\{URL\}/, URL),
     attachments: [ { path: filename } ]
       .concat(conf.includeDayMenu ? [ { path: thumbname } ] : [])
   }, (err, info) => {
@@ -135,10 +97,10 @@ function sendMail () {
       throw err
     }
     console.log(`Message sent: ${info.response}.`)
-    writeFileSync(statusFile, JSON.stringify({
+    status({
       sentWeek: refWeek,
       sentDay: refDay,
       confHash
-    }) + '\n')
+    })
   })
 }
