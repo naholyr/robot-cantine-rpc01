@@ -16,7 +16,9 @@ cf. sample.robotcantinerc:
 
 ```js
 {
-  // Save as .robotcantinerc
+  // Enregistrer en tant que ".robotcantinerc"
+  "rpcCode": 112, // 112 = standard, 111 = 20% bio, 113 = bistrot, 114 = collège, cf. https://www.rpc01.com/menu11.html
+  "zone": "A", // Zone de vacances scolaires
   "includeDayMenu": false,
   "filename": "[/tmp/menu-cantine-semaine-]w[.pdf]",
   "thumbname": "[/tmp/menu-cantine-jour-]DD/MM[.png]",

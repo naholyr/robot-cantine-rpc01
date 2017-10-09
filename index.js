@@ -35,9 +35,20 @@ if (alreadySent) {
   }
 }
 
+// Check for PDF URL
+const URL = url(conf, {weekMonday})
+if (!URL) {
+  console.log('No menu this week')
+  status({
+    sentWeek: refWeek,
+    sentDay: refDay,
+    confHash
+  })
+  process.exit(0)
+}
+
 // We can proceed: generate local cached file names
 const { filename, thumbname, exists } = files(conf, {weekMonday, todayOrNextMonday})
-const URL = url(conf, {weekMonday})
 
 // Final action: send the mails
 const sendMail = () => {
