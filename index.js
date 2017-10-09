@@ -39,49 +39,7 @@ if (alreadySent) {
 const { filename, thumbname, exists } = files(conf, {weekMonday, todayOrNextMonday})
 const URL = url(conf, {weekMonday})
 
-if (exists) {
-  console.log(`Menu already saved at ${filename}.`)
-  extractTodayMenu(sendMail)
-} else {
-  downloadAndSave(URL)
-}
-
-const downloadAndSave = url => {
-  console.log(`Fetching ${url}…`)
-  download(conf, url, filename, () => {
-    console.log(`Written ${filename}.`)
-    extractTodayMenu()
-  })
-}
-
-const extractTodayMenu = () => {
-  if (!conf.includeDayMenu) {
-    console.log('Day menu extraction disabled.')
-    sendMail()
-    return
-  }
-
-  console.log('Extracting today\'s menu…')
-  const d = todayOrNextMonday.day()
-  const g = gm(filename)
-  g.size((err, { width, height }) => {
-    if (err) {
-      throw err
-    }
-    const w = width * 0.172
-    const h = height * 0.70
-    const x = width * 0.105 + (d - 1) * width * 0.172
-    const y = height * 0.175
-    g.crop(w, h, x, y).write(thumbname, err => {
-      if (err) {
-        throw err
-      }
-      console.log(`Written ${thumbname}.`)
-      sendMail()
-    })
-  })
-}
-
+// Final action: send the mails
 const sendMail = () => {
   console.log('Sending email…')
   mailer(conf).sendMail({
@@ -103,4 +61,39 @@ const sendMail = () => {
       confHash
     })
   })
+}
+
+// Download if needed
+if (exists) {
+  console.log(`Menu already saved at ${filename}.`)
+} else {
+  console.log(`Fetching ${url}…`)
+  download(conf, URL, filename)
+  console.log(`Written ${filename}.`)
+}
+
+// Extract day menu or just send week menu
+if (conf.includeDayMenu) {
+  console.log('Extracting today\'s menu…')
+  const d = todayOrNextMonday.day()
+  const g = gm(filename)
+  g.size((err, { width, height }) => {
+    if (err) {
+      throw err
+    }
+    const w = width * 0.172
+    const h = height * 0.70
+    const x = width * 0.105 + (d - 1) * width * 0.172
+    const y = height * 0.175
+    g.crop(w, h, x, y).write(thumbname, err => {
+      if (err) {
+        throw err
+      }
+      console.log(`Written ${thumbname}.`)
+      sendMail()
+    })
+  })
+} else {
+  console.log('Day menu extraction disabled.')
+  sendMail()
 }
