@@ -8,10 +8,10 @@ const gm = require('gm')
 const sha1 = require('sha1')
 
 const { weekMonday, todayOrNextMonday } = dates()
-const { sentDay } = status()
+const { sentDay, sentWeek, confHash } = status()
 
 // Configuration hash: to detect if configuration changed between two executions
-const confHash = sha1(JSON.stringify(conf))
+const newConfHash = sha1(JSON.stringify(conf))
 
 // Reference day/week if we must check daily or weekly
 const refDay = todayOrNextMonday.format('YYYYDDD')
@@ -19,7 +19,7 @@ const refWeek = weekMonday.year() * 52 + weekMonday.week()
 
 // Already sent this week or day?
 let alreadySent = false
-if (!conf.includeDayMenu && status.sentWeek >= refWeek) {
+if (!conf.includeDayMenu && sentWeek >= refWeek) {
   console.log('Menu already sent this week.')
   console.log('Day menu extraction disabled.')
   alreadySent = true
@@ -27,8 +27,9 @@ if (!conf.includeDayMenu && status.sentWeek >= refWeek) {
   console.log('Menu already sent today.')
   alreadySent = true
 }
+
 if (alreadySent) {
-  if (status.confHash && confHash !== status.confHash) {
+  if (confHash && confHash !== newConfHash) {
     console.log('Configuration has changed! sending anyway…')
   } else {
     process.exit(0)
@@ -42,7 +43,7 @@ if (!URL) {
   status({
     sentWeek: refWeek,
     sentDay: refDay,
-    confHash
+    confHash: newConfHash,
   })
   process.exit(0)
 }
@@ -69,7 +70,7 @@ const sendMail = () => {
     status({
       sentWeek: refWeek,
       sentDay: refDay,
-      confHash
+      confHash: newConfHash,
     })
   })
 }
