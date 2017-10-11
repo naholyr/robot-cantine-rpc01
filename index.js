@@ -79,7 +79,7 @@ const sendMail = () => {
 if (exists) {
   console.log(`Menu already saved at ${filename}.`)
 } else {
-  console.log(`Fetching ${url}…`)
+  console.log(`Fetching ${URL}…`)
   download(conf, URL, filename)
   console.log(`Written ${filename}.`)
 }
