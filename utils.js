@@ -5,7 +5,7 @@ const { createTransport } = require('nodemailer')
 const home = require('user-home')
 const { join } = require('path')
 const { statSync, readFileSync, writeFileSync } = require('fs')
-const request = require('sync-request')
+const request = require('./sync-request')
 const ical = require('ical')
 const { tmpdir } = require('os')
 const path = require('path')
@@ -63,8 +63,8 @@ exports.files = (conf, {weekMonday, todayOrNextMonday}) => {
 
 const download = exports.download = ({ userAgent }, url, filename) => {
   const headers = { 'User-Agent': userAgent }
-  const res = request('GET', url, { headers })
-  writeFileSync(filename, res.body)
+  const body = request({ method: 'GET', url, headers })
+  writeFileSync(filename, body)
 }
 
 const isHoliday = ({zone, userAgent}, date) =>
